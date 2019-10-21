@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+import django_heroku
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -26,7 +27,7 @@ SECRET_KEY = '0&e1r9wyl=-hxs&6d-a9xj4&&h8*b*bfz9&^z(re9-2cj*8e(p'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
+IS_HEROKU = os.getenv('IS_HEROKU', False)
 
 # Application definition
 
@@ -37,6 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'member',
+    'manager',
 ]
 
 MIDDLEWARE = [
@@ -72,7 +76,6 @@ WSGI_APPLICATION = 'CRM.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -118,3 +121,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = 'staticfiles'
+
+if IS_HEROKU:
+    django_heroku.settings(locals())

@@ -83,6 +83,7 @@ tramp
 
 *.sqlite
 *.sqlite3
+staticfiles/
 
 newenv
 
