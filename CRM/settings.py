@@ -26,7 +26,7 @@ SECRET_KEY = '0&e1r9wyl=-hxs&6d-a9xj4&&h8*b*bfz9&^z(re9-2cj*8e(p'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 IS_HEROKU = os.getenv('IS_HEROKU', False)
 
 # Application definition
@@ -39,6 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+
+    # social login
+    'social_django',
+
+    # apps
     'member',
     'manager',
 ]
@@ -51,6 +56,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # social login
+    'social_django.middleware.SocialAuthExceptionMiddleware',
 ]
 
 ROOT_URLCONF = 'CRM.urls'
@@ -66,13 +73,28 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                # social login
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
 ]
 
 WSGI_APPLICATION = 'CRM.wsgi.application'
+AUTHENTICATION_BACKENDS = (
+    'social_core.backends.line.LineOAuth2',
 
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+LOGIN_URL = 'login'
+LOGOUT_URL = 'logout'
+# LOGIN_REDIRECT_URL = 'member/test/'
+
+SOCIAL_AUTH_LINE_KEY = '1546897574'
+SOCIAL_AUTH_LINE_SECRET = '4ed456abb7ecfb1ac15a090332b2d1b7'
+SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases

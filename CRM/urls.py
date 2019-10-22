@@ -21,4 +21,5 @@ from member.urls import urlpatterns as member_url
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^member/', include(member_url)),
+    url(r'^oauth/', include('social_django.urls', namespace='social')),
 ]
