@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>註冊</title>
+	<style>
+	.RED{
+		color:#FF0000;
+	}
+	span, input{
+		margin:5px;
+	}
+	</style>
+</head>
+<body>
+	<form method="post">    
+		{% csrf_token %}    
+		<span>名字</span><span class="RED">*</span><input type="text" name="first_name" required></br>
+		<span>姓氏</span><span class="RED">*</span><input type="text" name="last_name" required></br>
+		
+		<span>手機</span><span class="RED">*</span><input type="text" name="phone" required></br>
+		<span>email</span><input type="text" name="email"></br>
+		
+		<span>生日</span><input type="text" name="birth" placeholder="2020/10/10"></br>
+		<button type="submit">提交</button>  
+	</form> 
+</body>
+</html>

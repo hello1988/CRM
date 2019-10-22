@@ -23,12 +23,13 @@ class Member(Basis):
     line_id = models.CharField(max_length=128, default='', blank=True)
     picture_url = models.TextField(default='', blank=True)
     status_message = models.TextField(default='', blank=True)
+    registered = models.BooleanField(default=False)
 
-    # birth_year = models.PositiveIntegerField(default=0)
-    # birth_month = models.PositiveIntegerField(default=0)
-    # birth_day = models.PositiveIntegerField(default=0)
+    birth_year = models.PositiveIntegerField(default=0)
+    birth_month = models.PositiveIntegerField(default=0)
+    birth_day = models.PositiveIntegerField(default=0)
 
-    # remain_points = models.PositiveIntegerField(default=0)
+    remain_points = models.PositiveIntegerField(default=0)
 
     def __unicode__(self):
         return '{} {}'.format(self.first_name, self.last_name)
