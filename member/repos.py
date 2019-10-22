@@ -1,4 +1,4 @@
-from .models import Member
+from .models import Member, Operator, Product
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from social_django.models import UserSocialAuth
@@ -16,8 +16,28 @@ class MemberRepo(object):
         except:
             return None
 
-member_repo = MemberRepo()
+    def get_by_phone(self, phone):
+        try:
+            member = Member.objects.get(phone=phone)
+            return member
+        except:
+            return None
 
+class OperatorRepo(object):
+    def get_by_user(self, user):
+        try:
+            operator = Operator.objects.get(user=user)
+            return operator
+        except:
+            return None
+
+class ProductRepo(object):
+    def get_all(self):
+        return Product.objects.all()
+
+member_repo = MemberRepo()
+operator_repo = OperatorRepo()
+product_repo = ProductRepo()
 
 @receiver(post_save, sender=UserSocialAuth)
 def on_user_create(sender, instance, created, **kwargs):

@@ -11,7 +11,7 @@ class Basis(models.Model):
     class Meta:
         abstract = True
 
-
+# 會員
 class Member(Basis):
     first_name = models.CharField(max_length=255, default='', blank=True)
     last_name = models.CharField(max_length=255, default='', blank=True)
@@ -25,14 +25,75 @@ class Member(Basis):
     status_message = models.TextField(default='', blank=True)
     registered = models.BooleanField(default=False)
 
-    birth_year = models.PositiveIntegerField(default=0)
-    birth_month = models.PositiveIntegerField(default=0)
-    birth_day = models.PositiveIntegerField(default=0)
+    birth_year = models.PositiveIntegerField(default=0, blank=True)
+    birth_month = models.PositiveIntegerField(default=0, blank=True)
+    birth_day = models.PositiveIntegerField(default=0, blank=True)
 
-    remain_points = models.PositiveIntegerField(default=0)
+    remain_points = models.PositiveIntegerField(default=0, blank=True)
 
     def __unicode__(self):
         return '{} {}'.format(self.first_name, self.last_name)
 
     def __str__(self):
         return '{} {}'.format(self.first_name, self.last_name)
+
+# 施術者
+class Operator(Basis):
+    first_name = models.CharField(max_length=255, default='', blank=True)
+    last_name = models.CharField(max_length=255, default='', blank=True)
+    phone = models.CharField(max_length=32, null=True, default=None, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __unicode__(self):
+        return '{} {}'.format(self.first_name, self.last_name)
+
+
+    def __str__(self):
+        return '{} {}'.format(self.first_name, self.last_name)
+
+# 診斷紀錄
+class MedicalRecord(Basis):
+    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    operator = models.ForeignKey(Operator, on_delete=models.CASCADE)
+    title = models.CharField(max_length=32, default='', blank=True)
+    text = models.TextField(default='', blank=True)
+
+    def __unicode__(self):
+        return self.title
+
+
+    def __str__(self):
+        return self.title
+
+# 產品、課程
+class Product(models.Model):
+    name = models.CharField(max_length=32)
+    desc = models.CharField(max_length=256)
+    price = models.PositiveIntegerField(default=0)
+
+# class Coupon:
+#     name
+#     desc
+#     discount_percentage
+#     discount_value
+#     expired_at
+#
+# class CouponTable:
+#     created_at
+#     updated_at
+#     member
+#     coupon
+#     expired_at
+#     available
+
+class Order(Basis):
+    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    total_price = models.PositiveIntegerField(default=0)
+    # coupon = models.ForeignKey(CouponTable, on_delete=models.CASCADE, null=True, default=None, blank=True)
+
+class Cart:
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    operator = models.ForeignKey(Operator, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=0)
