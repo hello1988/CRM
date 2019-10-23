@@ -71,6 +71,13 @@ class Product(models.Model):
     desc = models.CharField(max_length=256)
     price = models.PositiveIntegerField(default=0)
 
+    def __unicode__(self):
+        return self.name
+
+
+    def __str__(self):
+        return self.name
+
 # class Coupon:
 #     name
 #     desc
@@ -88,10 +95,11 @@ class Product(models.Model):
 
 class Order(Basis):
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    discount = models.PositiveIntegerField(default=0)
     total_price = models.PositiveIntegerField(default=0)
     # coupon = models.ForeignKey(CouponTable, on_delete=models.CASCADE, null=True, default=None, blank=True)
 
-class Cart:
+class Cart(Basis):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     operator = models.ForeignKey(Operator, on_delete=models.CASCADE)

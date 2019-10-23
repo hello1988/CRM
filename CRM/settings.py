@@ -148,3 +148,4 @@ STATIC_ROOT = 'staticfiles'
 
 if IS_HEROKU:
     django_heroku.settings(locals())
+    DEBUG = False

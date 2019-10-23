@@ -6,6 +6,11 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
     <script>
+	product_info = {};
+	{% for product in products %}
+	product_info[{{product.id}}] = {'id':{{product.id}}, 'name':'{{product.name}}', 'price':{{product.price}}};
+	{% endfor %}
+	
     $(function(){
 		bill_row_count = 0;
 		
@@ -13,6 +18,7 @@
 			row_text = get_new_row_text()
             $("#bill_form").append(row_text);
         });
+		$("#add_row").click();
     });
 
 	function get_new_row_text(){
@@ -27,17 +33,61 @@
 					</select>\
 				</td>\
 				<td><input type="text" name="price'+bill_row_count+'" readonly></td>\
-				<td><input type="text" name="quantity'+bill_row_count+'"></td>\
-				<td><input id="sum'+bill_row_count+'" readonly></input></td>\
+				<td><input type="text" name="quantity'+bill_row_count+'" onblur="on_quantity_change('+bill_row_count+')"></td>\
+				<td><input name="sum'+bill_row_count+'" readonly></input></td>\
 			</tr>\
 		';
 		bill_row_count += 1;
-		return row_text
+		return row_text;
 	}
 	
 	function on_product_change(row_idx){
+		product_id = $('select[name="product'+row_idx+'"]').val();
+		product = product_info[product_id];
 		
+		$('input[name="price'+row_idx+'"]').val( product ? product.price : '' );
+		$('input[name="quantity'+row_idx+'"]').val('');
+		$('input[name="sum'+row_idx+'"]').val('');
+		
+		calc_total();
 	}
+	
+	function on_quantity_change(row_idx){
+		product_id = $('select[name="product'+row_idx+'"]').val();
+		product = product_info[product_id];
+		
+		if( product ){
+			quantity = parseInt( $('input[name="quantity'+row_idx+'"]').val() );
+			sum = product.price*quantity;
+			$('input[name="sum'+row_idx+'"]').val(sum);
+		}
+		else{
+			$('input[name="quantity'+row_idx+'"]').val('');
+			$('input[name="sum'+row_idx+'"]').val('');
+		}
+		
+		calc_total();
+	}
+	
+	function calc_total(){
+		total = 0
+		for (row_idx = 0; row_idx < bill_row_count; row_idx++){
+			
+			price = parseInt( $('input[name="price'+row_idx+'"]').val() );
+			quantity = parseInt( $('input[name="quantity'+row_idx+'"]').val() );
+			if ( !price | !quantity){
+				continue;
+			}
+			
+			total += price*quantity;
+		}
+		discount = parseInt( $('input[name="discount"]').val() );
+		if(discount){
+			total = Math.max( (total-discount), 0 );
+		}
+		
+		$('input[name="total"]').val(total);
+	};
     </script>
 </head>
 <body>
@@ -56,9 +106,14 @@
             <th>小記</th>
         </tr>
     </table>
-
+	
+	<hr>
+	<span>折扣 : </span>
+    <input type="text" name="discount" value="0" onblur="calc_total()"></br></br>
+	<span>總價 : </span>
+    <input type="text" name="total" value="0" readonly></br></br>
+	<button type="button" id="add_row">新增一列</button>
 	<button type="submit" id="summit_btn">提交</button>
 </form>
-<button id="add_row">新增一列</button>
 </body>
 </html>

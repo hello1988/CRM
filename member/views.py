@@ -5,7 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.authentication import BasicAuthentication, TokenAuthentication
-from .repos import member_repo, product_repo
+from .repos import member_repo, operator_repo, product_repo, order_repo
 # Create your views here.
 class MemberViewSet(LoginRequiredMixin, viewsets.ViewSet):
     # authentication_classes = ()
@@ -75,6 +75,12 @@ class TransactionViewSet(viewsets.ViewSet):
             data = request.POST.dict()
             phone = data.get('phone','')
             member = member_repo.get_by_phone(phone)
+            operator = operator_repo.get_by_user(request.user)
+            if not member or not operator:
+                return Response(status.HTTP_400_BAD_REQUEST)
+
+            order_repo.create_order(member, operator, data)
+
             result = {}
             return JsonResponse(result)
         return Response(status.HTTP_200_OK)
