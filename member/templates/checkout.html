@@ -11,6 +11,12 @@
 	product_info[{{product.id}}] = {'id':{{product.id}}, 'name':'{{product.name}}', 'price':{{product.price}}};
 	{% endfor %}
 	
+	coupon_info = {}
+	{% for coupon in coupons %}
+	coupon_info[{{coupon.id}}] = {'id':{{coupon.id}}, 'percentage':{{coupon.coupon.discount_percentage}}, 'value':{{coupon.coupon.discount_value}}};
+	{% endfor %}
+	
+	
     $(function(){
 		bill_row_count = 0;
 		
@@ -81,6 +87,18 @@
 			
 			total += price*quantity;
 		}
+		
+		coupon_id = parseInt( $('select[name="coupon"]').val() );
+		coupon = coupon_info[coupon_id];
+		if(coupon){
+			if(coupon.percentage > 0){
+				total *= coupon.percentage;
+			}
+			else if(coupon.value > 0){
+				total -= coupon.value;
+			}
+		}
+		
 		discount = parseInt( $('input[name="discount"]').val() );
 		if(discount){
 			total = Math.max( (total-discount), 0 );
@@ -108,6 +126,13 @@
     </table>
 	
 	<hr>
+	<span>優惠券 : </span>
+	<select name="coupon" onChange="calc_total()">
+		<option  value="" selected="selected">---SELECT---</option>
+		{% for coupon in coupons %}
+		<option value="{{coupon.id}}">{{coupon.coupon.name}}({{coupon.expired_at|date:'Y-m-d H:i'}})</option>
+		{% endfor %}
+	</select></br></br>
 	<span>折扣 : </span>
     <input type="text" name="discount" value="0" onblur="calc_total()"></br></br>
 	<span>總價 : </span>

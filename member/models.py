@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import User
 from social_django.models import UserSocialAuth
@@ -74,30 +75,43 @@ class Product(models.Model):
     def __unicode__(self):
         return self.name
 
+    def __str__(self):
+        return self.name
+
+class Coupon(models.Model):
+    name = models.CharField(max_length=32)
+    desc = models.CharField(max_length=256)
+    discount_percentage = models.FloatField(default=0.0, null=True, blank=True)
+    discount_value = models.PositiveIntegerField(default=0, null=True, blank=True)
+    expired_at = models.DateTimeField(null=True, blank=True)
+
+    def __unicode__(self):
+        return self.name
 
     def __str__(self):
         return self.name
 
-# class Coupon:
-#     name
-#     desc
-#     discount_percentage
-#     discount_value
-#     expired_at
-#
-# class CouponTable:
-#     created_at
-#     updated_at
-#     member
-#     coupon
-#     expired_at
-#     available
+class CouponTable(Basis):
+    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    coupon = models.ForeignKey(Coupon, on_delete=models.CASCADE)
+    expired_at = models.DateTimeField(null=True, blank=True)
+    used_at = models.DateTimeField(null=True, blank=True)
+    available = models.BooleanField(default=True)
+
+    def is_available(self):
+        if self.available == False:
+            return False
+
+        if self.expired_at is not None and self.expired_at < timezone.now():
+            return False
+
+        return True
 
 class Order(Basis):
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     discount = models.PositiveIntegerField(default=0)
     total_price = models.PositiveIntegerField(default=0)
-    # coupon = models.ForeignKey(CouponTable, on_delete=models.CASCADE, null=True, default=None, blank=True)
+    coupon = models.ForeignKey(CouponTable, on_delete=models.CASCADE, null=True, default=None, blank=True)
 
 class Cart(Basis):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)

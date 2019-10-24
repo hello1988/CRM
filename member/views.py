@@ -5,7 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.authentication import BasicAuthentication, TokenAuthentication
-from .repos import member_repo, operator_repo, product_repo, order_repo
+from .repos import member_repo, operator_repo, product_repo, order_repo, coupon_repo
 # Create your views here.
 class MemberViewSet(LoginRequiredMixin, viewsets.ViewSet):
     # authentication_classes = ()
@@ -69,7 +69,8 @@ class TransactionViewSet(viewsets.ViewSet):
             phone = request.GET.get('phone', '')
             member = member_repo.get_by_phone(phone)
             products = product_repo.get_all()
-            return render(request, 'checkout.html', {'member':member, 'products':products})
+            coupons = coupon_repo.get_coupon_by_member(member, available=True)
+            return render(request, 'checkout.html', {'member':member, 'products':products, 'coupons':coupons})
 
         elif request.method == 'POST':
             data = request.POST.dict()

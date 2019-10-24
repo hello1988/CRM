@@ -1,7 +1,9 @@
-from .models import Member, Operator, Product, Order, Cart
+from django.utils import timezone
+from .models import Member, Operator, Product, Order, Cart, Coupon, CouponTable
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from social_django.models import UserSocialAuth
+from django.db.models import Q
 
 class MemberRepo(object):
     def get_by_social(self, social_user):
@@ -69,7 +71,16 @@ class OrderRepo(object):
             return
 
         order = Order.objects.create(member=member)
-        discount = int( form_data['discount'] )
+        coupon_id = form_data.get('coupon')
+        coupon = coupon_repo.use_coupon(member, coupon_id)
+        if coupon:
+            if coupon.coupon.discount_percentage > 0:
+                total *= coupon.coupon.discount_percentage
+
+            elif coupon.coupon.discount_value > 0:
+                total -= coupon.coupon.discount_value
+
+        discount = int( form_data.get('discount', 0) )
         order.total_price = total - discount
         order.discount = discount
         order.save()
@@ -79,11 +90,35 @@ class OrderRepo(object):
 
         Cart.objects.bulk_create(carts)
 
+class CouponRepo(object):
+    # Coupon, CouponTable
+    def get_coupon_by_member(self, member, available=None):
+        coupons = CouponTable.objects.filter(member=member)
+        if available:
+            coupons = coupons.filter(available=available)
+            coupons = coupons.filter( Q(expired_at__isnull=True) | Q(expired_at__gt=timezone.now())  )
+        return coupons
+
+    def use_coupon(self, member, coupon_id):
+        coupons = CouponTable.objects.filter(member=member, id=coupon_id)
+        coupon = CouponTable.objects.filter(member=member, id=coupon_id).first()
+        if not coupon:
+            return
+
+        if not coupon.is_available():
+            return
+
+        coupon.available = False
+        coupon.used_at = timezone.now()
+        coupon.save()
+        return coupon
+
 
 member_repo = MemberRepo()
 operator_repo = OperatorRepo()
 product_repo = ProductRepo()
 order_repo = OrderRepo()
+coupon_repo = CouponRepo()
 
 @receiver(post_save, sender=UserSocialAuth)
 def on_user_create(sender, instance, created, **kwargs):
@@ -99,3 +134,10 @@ def on_user_create(sender, instance, created, **kwargs):
         member.status_message = extra_data.get('status_message', '')
 
     member.save()
+
+@receiver(post_save, sender=CouponTable)
+def on_member_gain_coupon(sender, instance, created, **kwargs):
+    ct = instance
+    if created:
+        ct.expired_at = ct.coupon.expired_at
+        ct.save()
