@@ -95,7 +95,7 @@ LOGOUT_URL = 'logout'
 
 SOCIAL_AUTH_LINE_KEY = '1546897574'
 SOCIAL_AUTH_LINE_SECRET = '4ed456abb7ecfb1ac15a090332b2d1b7'
-SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
+# SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
@@ -150,3 +150,4 @@ STATIC_ROOT = 'staticfiles'
 if IS_HEROKU:
     django_heroku.settings(locals())
     DEBUG = False
+    SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
