@@ -52,20 +52,6 @@ class Operator(Basis):
     def __str__(self):
         return '{} {}'.format(self.first_name, self.last_name)
 
-# 診斷紀錄
-class MedicalRecord(Basis):
-    member = models.ForeignKey(Member, on_delete=models.CASCADE)
-    operator = models.ForeignKey(Operator, on_delete=models.CASCADE)
-    title = models.CharField(max_length=32, default='', blank=True)
-    text = models.TextField(default='', blank=True)
-
-    def __unicode__(self):
-        return self.title
-
-
-    def __str__(self):
-        return self.title
-
 # 產品、課程
 class Product(models.Model):
     name = models.CharField(max_length=32)
@@ -119,3 +105,18 @@ class Cart(Basis):
     operator = models.ForeignKey(Operator, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=0)
+
+# 診斷紀錄
+class MedicalRecord(Basis):
+    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    operator = models.ForeignKey(Operator, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    title = models.CharField(max_length=32, default='', blank=True)
+    text = models.TextField(default='', blank=True)
+
+    def __unicode__(self):
+        return self.title
+
+
+    def __str__(self):
+        return self.title

@@ -25,6 +25,24 @@ class MemberRepo(object):
         except:
             return None
 
+    def update_info(self, user, first_name, last_name, phone, email, birth):
+        member = self.get_by_user(user)
+        member.first_name = first_name
+        member.last_name = last_name
+        member.phone = phone
+        member.email = email
+
+        birth = birth
+        if birth.count('/') == 2:
+            year, month, day = birth.split('/')
+            member.birth_year = year
+            member.birth_month = month
+            member.birth_day = day
+
+        member.registered = True
+        member.save()
+        return member
+
 class OperatorRepo(object):
     def get_by_user(self, user):
         try:

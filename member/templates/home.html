@@ -9,6 +9,7 @@
 		<span>姓氏:</span><span>{{member.last_name}}</span></br>
 		<span>生日:</span><span>{{member.birth_year}}/{{member.birth_month}}/{{member.birth_day}}</span></br>
 		<span>可用點數:</span><span>{{member.remain_points}}</span></br>
-		
+		<img src="https://api.qrserver.com/v1/create-qr-code/?data={{uri}}/member/trans/checkout/%3fphone={{member.phone}}%26openExternalBrowser=1&size=100x100" alt="" title="" />
+
 </body>
 </html>
