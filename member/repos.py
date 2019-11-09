@@ -4,6 +4,7 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 from social_django.models import UserSocialAuth
 from django.db.models import Q
+from dateutil.relativedelta import relativedelta
 
 class MemberRepo(object):
     def get_by_social(self, social_user):
@@ -108,6 +109,45 @@ class OrderRepo(object):
 
         Cart.objects.bulk_create(carts)
 
+    def get_by_user(self, user, start_dt=None, end_dt=None):
+        member = member_repo.get_by_user(user)
+
+        if end_dt is None:
+            end_dt = timezone.now()
+
+        if start_dt is None:
+            start_dt = end_dt + relativedelta(months=-3)
+
+        orders = Order.objects.filter(member=member, created_at__range=(start_dt, end_dt)).order_by('-created_at')
+        return orders
+
+    def get_orders_detail(self, orders):
+        order_ids = orders.values_list('id', flat=True)
+        carts = Cart.objects.filter(order__in=order_ids)
+
+        cart_info = {}
+        for cart in carts:
+            order_id = cart.order.id
+            if order_id not in cart_info:
+                cart_info[order_id] = []
+
+            data = {'product':cart.product.name, 'quantity':cart.quantity}
+            cart_info[order_id].append(data)
+
+        result = []
+        for order in orders:
+            info = {}
+            info['order_id'] = order.id
+            info['discount'] = order.discount
+            info['total_price'] = order.total_price
+            info['coupon'] = order.coupon.coupon.name if order.coupon else ''
+            info['created_at'] = order.created_at.strftime('%Y/%m/%d %H:%M')
+            info['products'] = cart_info.get(order.id, [])
+
+            result.append(info)
+
+        return result
+
 class CouponRepo(object):
     # Coupon, CouponTable
     def get_coupon_by_member(self, member, available=None):
@@ -115,10 +155,9 @@ class CouponRepo(object):
         if available:
             coupons = coupons.filter(available=available)
             coupons = coupons.filter( Q(expired_at__isnull=True) | Q(expired_at__gt=timezone.now())  )
-        return coupons
+        return coupons.order_by('expired_at')
 
     def use_coupon(self, member, coupon_id):
-        coupons = CouponTable.objects.filter(member=member, id=coupon_id)
         coupon = CouponTable.objects.filter(member=member, id=coupon_id).first()
         if not coupon:
             return

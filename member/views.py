@@ -6,6 +6,9 @@ from rest_framework.response import Response
 from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.authentication import BasicAuthentication, TokenAuthentication
 from .repos import member_repo, operator_repo, product_repo, order_repo, coupon_repo
+from dateutil.parser import parse as dt_parse
+from pytz import timezone
+from django.conf import settings
 # Create your views here.
 class MemberViewSet(LoginRequiredMixin, viewsets.ViewSet):
     # authentication_classes = ()
@@ -33,7 +36,11 @@ class MemberViewSet(LoginRequiredMixin, viewsets.ViewSet):
 
             member = member_repo.update_info(request.user, data['first_name'], data['last_name'], data['phone'],
                                              data.get('email', ''), data['birth'])
-            return render(request, 'home.html', {'member':member})
+
+            host = request.META['HTTP_HOST']
+            uri = 'http://' if host.startswith('localhost') else 'https://'
+            uri += host
+            return render(request, 'home.html', {'member': member, 'uri': uri})
 
         return Response(status.HTTP_200_OK)
 
@@ -81,7 +88,18 @@ class MemberViewSet(LoginRequiredMixin, viewsets.ViewSet):
 
     @action(methods=['get'], detail=False, url_path='record')
     def record(self, request):
-        result = {}
+        start_dt = request.GET.get('start_dt', None)
+        end_dt = request.GET.get('end_dt', None)
+
+        tz_info = timezone(settings.TIME_ZONE)
+        if start_dt:
+            start_dt  = dt_parse(start_dt).replace(tzinfo=tz_info)
+
+        if end_dt:
+            end_dt = dt_parse(end_dt).replace(tzinfo=tz_info)
+
+        orders = order_repo.get_by_user(request.user, start_dt=start_dt, end_dt=end_dt)
+        result = order_repo.get_orders_detail(orders)
         return JsonResponse(result, safe=False)
 
 class TransactionViewSet(viewsets.ViewSet):

@@ -3,6 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <title>會員資料編輯</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    {% load static %}
+    <script src='{% static "js/member_api.js" %}'></script>
+    <script>
+    $(function(){
+		get_member_coupons(coupon_callback);
+    });
+
+    function coupon_callback(data){
+        console.log('coupon_callback');
+        console.log(data);
+    }
+    </script>
 </head>
 <body>
 
