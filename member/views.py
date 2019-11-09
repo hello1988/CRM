@@ -117,7 +117,27 @@ class TransactionViewSet(viewsets.ViewSet):
             result['points'] = member.remain_points
             result['birth'] = '{}/{}/{}'.format(member.birth_year, member.birth_month, member.birth_day)
 
+        coupon_info = {}
+        coupon_list = []
+        coupons = coupon_repo.get_coupon_by_member(member, available=True)
+        for coupon in coupons:
+            coupon_info[coupon.id] = {'id':coupon.id, 'percentage':coupon.coupon.discount_percentage, 'value':coupon.coupon.discount_value}
+
+            expired_at = coupon.expired_at.strftime('%Y/%m/%d') if coupon.expired_at else ''
+            coupon_list.append( {'id':coupon.id, 'name':coupon.coupon.name, 'expired_at':expired_at} )
+
+        result['coupon_info'] = coupon_info
+        result['coupons'] = coupon_list
         return JsonResponse(result)
+
+
+    @action(methods=['get'], detail=False, url_path='record')
+    def record(self, request):
+        phone = request.GET.get('phone', '')
+        member = member_repo.get_by_phone(phone)
+        orders = order_repo.get_by_member(member)
+        result = order_repo.get_orders_detail(orders)
+        return JsonResponse(result, safe=False)
 
     @action(methods=['get', 'post'], detail=False, url_path='checkout')
     def checkout(self, request):
@@ -138,6 +158,35 @@ class TransactionViewSet(viewsets.ViewSet):
 
             order_repo.create_order(member, operator, data)
 
-            result = {}
+            result = {'success':1}
             return JsonResponse(result)
+
         return Response(status.HTTP_200_OK)
+
+
+class CouponViewSet(viewsets.ViewSet):
+    authentication_classes = (BasicAuthentication, TokenAuthentication,)
+    permission_classes = (permissions.IsAdminUser,)
+
+    @action(methods=['get'], detail=False, url_path='list')
+    def get_all(self, request):
+        result = []
+        return JsonResponse(result, safe=False)
+
+    @action(methods=['post'], detail=False, url_path='create')
+    def create_coupon(self, request):
+        return Response(status.HTTP_200_OK)
+
+    @action(methods=['post'], detail=False, url_path='modify')
+    def modify_coupon(self, request):
+        return Response(status.HTTP_200_OK)
+
+    @action(methods=['post'], detail=False, url_path='member_gain')
+    def member_gain(self, request):
+        result = {}
+        return JsonResponse(result)
+
+    @action(methods=['post'], detail=False, url_path='member_update')
+    def member_update(self, request):
+        result = {}
+        return JsonResponse(result)

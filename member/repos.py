@@ -121,6 +121,10 @@ class OrderRepo(object):
         orders = Order.objects.filter(member=member, created_at__range=(start_dt, end_dt)).order_by('-created_at')
         return orders
 
+    def get_by_member(self, member):
+        orders = Order.objects.filter(member=member).order_by('-created_at')
+        return orders
+
     def get_orders_detail(self, orders):
         order_ids = orders.values_list('id', flat=True)
         carts = Cart.objects.filter(order__in=order_ids)
