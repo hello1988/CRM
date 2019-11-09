@@ -9,6 +9,7 @@ from .repos import member_repo, operator_repo, product_repo, order_repo, coupon_
 from dateutil.parser import parse as dt_parse
 from pytz import timezone
 from django.conf import settings
+from django.forms.models import model_to_dict
 # Create your views here.
 class MemberViewSet(LoginRequiredMixin, viewsets.ViewSet):
     # authentication_classes = ()
@@ -170,23 +171,97 @@ class CouponViewSet(viewsets.ViewSet):
 
     @action(methods=['get'], detail=False, url_path='list')
     def get_all(self, request):
-        result = []
+        coupons = coupon_repo.get_all()
+        result = self.__to_list(coupons)
         return JsonResponse(result, safe=False)
+
+    def __to_list(self, coupons):
+        result = []
+        for coupon in coupons:
+            info = model_to_dict(coupon, exclude=['expired_at',])
+            info['expired_at'] = coupon.expired_at.strftime('%Y/%m/%d %H:%M:%S') if coupon.expired_at else ''
+
+            result.append(info)
+
+        return result
+
+    def __to_dict(self, coupon):
+        info = model_to_dict(coupon, exclude=['expired_at',])
+        info['expired_at'] = coupon.expired_at.strftime('%Y/%m/%d %H:%M:%S') if coupon.expired_at else ''
+        return info
+
 
     @action(methods=['post'], detail=False, url_path='create')
     def create_coupon(self, request):
-        return Response(status.HTTP_200_OK)
+        data = request.POST.dict()
+        if not all(key in data for key in ['name', 'desc', 'percentage', 'value']):
+            return Response(status.HTTP_400_BAD_REQUEST)
+
+        expired_dt = None
+        if 'expired_dt' in data:
+            tz_info = timezone(settings.TIME_ZONE)
+            expired_dt  = dt_parse(data['expired_dt']).replace(tzinfo=tz_info)
+
+        coupon = coupon_repo.modify_coupon(data['name'], data['desc'], data['percentage'], data['value'], expired_dt=expired_dt)
+        result = self.__to_dict(coupon)
+        return JsonResponse(result)
 
     @action(methods=['post'], detail=False, url_path='modify')
     def modify_coupon(self, request):
-        return Response(status.HTTP_200_OK)
+        data = request.POST.dict()
+        if not all(key in data for key in ['name', 'desc', 'percentage', 'value', 'coupon_id']):
+            return Response(status.HTTP_400_BAD_REQUEST)
+
+        expired_dt = None
+        if 'expired_dt' in data:
+            tz_info = timezone(settings.TIME_ZONE)
+            expired_dt  = dt_parse(data['expired_dt']).replace(tzinfo=tz_info)
+
+        coupon = coupon_repo.modify_coupon(data['name'], data['desc'], data['percentage'], data['value'], expired_dt=expired_dt, coupon_id=data['coupon_id'])
+        result = self.__to_dict(coupon)
+        return JsonResponse(result)
+
+    def __member_coupon_to_dict(self, coupon_t):
+        info = {}
+        info['id'] = coupon_t.id
+        info['name'] = coupon_t.coupon.name
+        info['desc'] = coupon_t.coupon.desc
+        info['expired_at'] = coupon_t.expired_at.strftime('%Y/%m/%d %H:%M:%S') if coupon_t.expired_at else ''
+        info['used_at'] = coupon_t.used_at.strftime('%Y/%m/%d %H:%M:%S') if coupon_t.used_at else ''
+        info['available'] = coupon_t.available
+
+        return info
 
     @action(methods=['post'], detail=False, url_path='member_gain')
     def member_gain(self, request):
-        result = {}
+        data = request.POST.dict()
+        if not all(key in data for key in ['phone', 'coupon_id',]):
+            return Response(status.HTTP_400_BAD_REQUEST)
+
+        expired_dt = None
+        if 'expired_dt' in data:
+            tz_info = timezone(settings.TIME_ZONE)
+            expired_dt  = dt_parse(data['expired_dt']).replace(tzinfo=tz_info)
+
+        member = member_repo.get_by_phone(data['phone'])
+        available = data.get('available', None)
+        coupon_t = coupon_repo.modify_member_coupon(member, data['coupon_id'], available=available, expired_at=expired_dt)
+        result = self.__member_coupon_to_dict(coupon_t)
         return JsonResponse(result)
 
     @action(methods=['post'], detail=False, url_path='member_update')
     def member_update(self, request):
-        result = {}
+        data = request.POST.dict()
+        if not all(key in data for key in ['phone', 'coupon_id','ct_id']):
+            return Response(status.HTTP_400_BAD_REQUEST)
+
+        expired_dt = None
+        if 'expired_dt' in data:
+            tz_info = timezone(settings.TIME_ZONE)
+            expired_dt  = dt_parse(data['expired_dt']).replace(tzinfo=tz_info)
+
+        member = member_repo.get_by_phone(data['phone'])
+        available = data.get('available', None)
+        coupon_t = coupon_repo.modify_member_coupon(member, data['coupon_id'], available=available, expired_at=expired_dt, ct_id=data['ct_id'])
+        result = self.__member_coupon_to_dict(coupon_t)
         return JsonResponse(result)

@@ -154,6 +154,45 @@ class OrderRepo(object):
 
 class CouponRepo(object):
     # Coupon, CouponTable
+    def modify_coupon(self, name, desc, percentage, value, expired_dt=None, coupon_id=None):
+        coupon = Coupon()
+        if coupon_id:
+            coupon = Coupon.objects.filter(id=coupon_id).first()
+            if coupon is None:
+                return
+
+        coupon.name = name
+        coupon.desc = desc
+        coupon.discount_percentage = percentage
+        coupon.discount_value = value
+        if expired_dt:
+            coupon.expired_dt = expired_dt
+        coupon.save()
+        return coupon
+
+    def get_all(self):
+        coupons = Coupon.objects.all()
+        return coupons
+
+    def modify_member_coupon(self, member, coupon_id, available=None, expired_at=None, ct_id=None):
+        coupon_t = CouponTable()
+        if ct_id:
+            coupon_t = CouponTable.objects.filter(id=ct_id).first()
+            if coupon_t is None:
+                return
+
+        coupon_t.member = member
+        coupon_t.coupon_id = coupon_id
+        if expired_at:
+            coupon_t.expired_at = expired_at
+
+        if available is not None:
+            coupon_t.available = available
+
+        coupon_t.save()
+        return coupon_t
+
+
     def get_coupon_by_member(self, member, available=None):
         coupons = CouponTable.objects.filter(member=member)
         if available:
