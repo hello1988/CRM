@@ -5,7 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.authentication import BasicAuthentication, TokenAuthentication
-from .repos import member_repo, operator_repo, product_repo, order_repo, coupon_repo
+from .repos import member_repo, operator_repo, product_repo, order_repo, coupon_repo, medical_record_repo
 from dateutil.parser import parse as dt_parse
 from pytz import timezone
 from django.conf import settings
@@ -279,3 +279,30 @@ class CouponViewSet(viewsets.ViewSet):
         coupon_t = coupon_repo.modify_member_coupon(member, coupon_id=None, available=available, expired_at=expired_dt, ct_id=data['ct_id'])
         result = self.__member_coupon_to_dict(coupon_t)
         return JsonResponse(result)
+
+
+class RecordViewSet(viewsets.ViewSet):
+    authentication_classes = (BasicAuthentication, TokenAuthentication,)
+    permission_classes = (permissions.IsAdminUser,)
+
+    @action(methods=['get'], detail=False, url_path='detail')
+    def record_detail(self, request):
+        record_id = request.GET.get('record_id', None)
+        record = medical_record_repo.get_by_id(record_id)
+        result = self.__record_to_dict(record)
+        return JsonResponse(result)
+
+    @action(methods=['post'], detail=False, url_path='modify')
+    def modify_record(self, request):
+        data = request.POST.dict()
+        record_id = data.pop('record_id', None)
+        record = medical_record_repo.modify(record_id, **data)
+        result = self.__record_to_dict(record)
+        return JsonResponse(result)
+
+    def __record_to_dict(self, record):
+        result = model_to_dict(record, exclude=['member', 'operator', 'order'])
+        result['member'] = str( record.member )
+        result['operator'] = str( record.operator )
+
+        return result

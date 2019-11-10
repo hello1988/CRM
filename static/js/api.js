@@ -18,7 +18,7 @@ function get_member_info( callback, phone ){
 
 /*
 取得用戶消費紀錄
-resp : [{"order_id": 11, "discount": 0, "total_price": 1020, "coupon": "", "created_at": "2019/10/24 14:59", "products": [{"product": "\u6df1\u5c64\u808c\u8089\u653e\u9b06", "quantity": 1}]},...]
+resp : [{"order_id": 11, "discount": 0, "total_price": 1020, "coupon": "", "created_at": "2019/10/24 14:59", "products": [{"product": "\u6df1\u5c64\u808c\u8089\u653e\u9b06", "quantity": 1}], "record_id": 1},...]
 */
 function get_member_record( callback, phone ){
 	$.ajax({
@@ -70,6 +70,45 @@ function get_member_record( callback, phone, ct_id, available=undefined, expired
 		type: 'POST',
 		url: '/member/coupon/member_update/',
 		data: {'phone':phone, 'ct_id':ct_id, 'available':available, 'expired_dt':expired_dt},
+		success: function(resp, textStatus, jqXHR){
+			callback(resp);
+		}
+	});
+}
+
+/*
+取得用戶身體狀態紀錄
+resp : {"id": 1, "title": "tt", "detail": "dd", "homework": "hh", "head": true, "neck": false, "shoulder": false, "chest": false, "waist": false, "belly": false, "pelvis": true, "legs": false, "knees": false, "member": "Bliss Chen", "operator": "Test admin"}
+*/
+function get_member_record( callback, record_id ){
+	$.ajax({
+		type: 'GET',
+		url: '/member/record/detail/',
+		data: {'record_id':record_id},
+		success: function(resp, textStatus, jqXHR){
+			callback(resp);
+		}
+	});
+}
+
+/*
+修改用戶身體狀態紀錄
+resp : {"id": 1, "title": "tt", "detail": "dd", "homework": "hh", "head": true, "neck": false, "shoulder": false, "chest": false, "waist": false, "belly": false, "pelvis": true, "legs": false, "knees": false, "member": "Bliss Chen", "operator": "Test admin"}
+*/
+function get_member_record( callback, record_id, title, detail, homework, head=false, neck=false, shoulder=false, chest=false, waist=false, belly=false, pelvis=false, legs=false, knees=false){
+	$.ajax({
+		type: 'POST',
+		url: '/member/record/modify/',
+		data: {
+			'record_id':record_id,
+			'title':title,
+			'detail':detail,
+			'homework':homework,
+			'head':head,
+			'neck':neck,
+			'shoulder':shoulder,
+			'chest':chest,
+			},
 		success: function(resp, textStatus, jqXHR){
 			callback(resp);
 		}

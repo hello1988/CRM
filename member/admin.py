@@ -1,5 +1,7 @@
 from django.contrib import admin
-from .models import Member, Product, Operator, Order, Cart, CouponTable, Coupon
+from .models import Member, Product, Operator, Order, Cart, CouponTable, Coupon, MedicalRecord
+
+
 # Register your models here.
 
 class MemberAdmin(admin.ModelAdmin):
@@ -31,3 +33,4 @@ admin.site.register(Order, OrderAdmin)
 admin.site.register(Cart, CartAdmin)
 admin.site.register(CouponTable, CouponTableAdmin)
 admin.site.register(Coupon, CouponAdmin)
+admin.site.register(MedicalRecord)

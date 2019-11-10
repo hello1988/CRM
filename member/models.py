@@ -111,8 +111,20 @@ class MedicalRecord(Basis):
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     operator = models.ForeignKey(Operator, on_delete=models.CASCADE)
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    title = models.CharField(max_length=32, default='', blank=True)
-    text = models.TextField(default='', blank=True)
+    title = models.CharField(max_length=32, default='尚未輸入', blank=True)
+    detail = models.TextField(default='', blank=True)
+    homework = models.TextField(default='', blank=True)
+
+    # 主訴
+    head = models.BooleanField(default=False, verbose_name='頭')
+    neck = models.BooleanField(default=False, verbose_name='頸')
+    shoulder = models.BooleanField(default=False, verbose_name='肩')
+    chest = models.BooleanField(default=False, verbose_name='胸')
+    waist = models.BooleanField(default=False, verbose_name='腰')
+    belly = models.BooleanField(default=False, verbose_name='腹')
+    pelvis = models.BooleanField(default=False, verbose_name='骨盆')
+    legs = models.BooleanField(default=False, verbose_name='腿')
+    knees = models.BooleanField(default=False, verbose_name='膝')
 
     def __unicode__(self):
         return self.title

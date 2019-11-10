@@ -1,5 +1,5 @@
 from django.utils import timezone
-from .models import Member, Operator, Product, Order, Cart, Coupon, CouponTable
+from .models import Member, Operator, Product, Order, Cart, Coupon, CouponTable, MedicalRecord
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from social_django.models import UserSocialAuth
@@ -108,6 +108,7 @@ class OrderRepo(object):
             cart.order = order
 
         Cart.objects.bulk_create(carts)
+        medical_record_repo.create(member, operator, order)
 
     def get_by_user(self, user, start_dt=None, end_dt=None):
         member = member_repo.get_by_user(user)
@@ -138,6 +139,9 @@ class OrderRepo(object):
             data = {'product':cart.product.name, 'quantity':cart.quantity}
             cart_info[order_id].append(data)
 
+        records = medical_record_repo.get_by_order_ids(order_ids)
+        record_info = { record['order_id']:record['id'] for record in records.values('order_id', 'id') }
+
         result = []
         for order in orders:
             info = {}
@@ -147,6 +151,7 @@ class OrderRepo(object):
             info['coupon'] = order.coupon.coupon.name if order.coupon else ''
             info['created_at'] = order.created_at.strftime('%Y/%m/%d %H:%M')
             info['products'] = cart_info.get(order.id, [])
+            info['record_id'] = record_info.get(order.id, '')
 
             result.append(info)
 
@@ -214,12 +219,45 @@ class CouponRepo(object):
         coupon.save()
         return coupon
 
+class MedicalRecordRepo(object):
+    def create(self, member, operator, order):
+        record = MedicalRecord.objects.create(member=member, operator=operator, order=order, title='尚未輸入')
+        return record
+
+    def get_by_id(self, record_id):
+        record = MedicalRecord.objects.filter(id=record_id).first()
+        return record
+
+    def get_by_order_ids(self, order_ids):
+        records = MedicalRecord.objects.filter(order_id__in=order_ids)
+        return records
+
+    def modify(self, record_id, **kwargs):
+        record = self.get_by_id(record_id)
+        if not record:
+            return
+
+        fields = MedicalRecord._meta.get_fields()
+        editable_fields = { field.name for field in fields if field.get_internal_type() in {'CharField', 'TextField', 'BooleanField',} }
+        bool_fields = { field.name for field in fields if field.get_internal_type() in {'BooleanField',} }
+        for attr, value in kwargs.items():
+            if attr not in editable_fields:
+                continue
+
+            if attr in bool_fields:
+                value = True if value == 'true' else False
+
+            setattr( record, attr, value )
+
+        record.save()
+        return record
 
 member_repo = MemberRepo()
 operator_repo = OperatorRepo()
 product_repo = ProductRepo()
 order_repo = OrderRepo()
 coupon_repo = CouponRepo()
+medical_record_repo = MedicalRecordRepo()
 
 @receiver(post_save, sender=UserSocialAuth)
 def on_user_create(sender, instance, created, **kwargs):
