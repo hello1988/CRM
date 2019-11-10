@@ -232,6 +232,19 @@ class CouponViewSet(viewsets.ViewSet):
 
         return info
 
+    @action(methods=['get'], detail=False, url_path='member_coupons')
+    def member_coupons(self, request):
+        phone = request.GET.get('phone', '')
+        member = member_repo.get_by_phone(phone)
+        coupon_list = []
+        coupons = coupon_repo.get_coupon_by_member(member)
+        for coupon in coupons:
+            expired_at = coupon.expired_at.strftime('%Y/%m/%d') if coupon.expired_at else ''
+            coupon_list.append( {'id':coupon.id, 'name':coupon.coupon.name, 'expired_at':expired_at, 'available':coupon.available} )
+
+        return JsonResponse(coupon_list, safe=False)
+
+
     @action(methods=['post'], detail=False, url_path='member_gain')
     def member_gain(self, request):
         data = request.POST.dict()
@@ -244,15 +257,14 @@ class CouponViewSet(viewsets.ViewSet):
             expired_dt  = dt_parse(data['expired_dt']).replace(tzinfo=tz_info)
 
         member = member_repo.get_by_phone(data['phone'])
-        available = data.get('available', None)
-        coupon_t = coupon_repo.modify_member_coupon(member, data['coupon_id'], available=available, expired_at=expired_dt)
+        coupon_t = coupon_repo.modify_member_coupon(member, data['coupon_id'], available=True, expired_at=expired_dt)
         result = self.__member_coupon_to_dict(coupon_t)
         return JsonResponse(result)
 
     @action(methods=['post'], detail=False, url_path='member_update')
     def member_update(self, request):
         data = request.POST.dict()
-        if not all(key in data for key in ['phone', 'coupon_id','ct_id']):
+        if not all(key in data for key in ['phone','ct_id']):
             return Response(status.HTTP_400_BAD_REQUEST)
 
         expired_dt = None
@@ -262,6 +274,8 @@ class CouponViewSet(viewsets.ViewSet):
 
         member = member_repo.get_by_phone(data['phone'])
         available = data.get('available', None)
-        coupon_t = coupon_repo.modify_member_coupon(member, data['coupon_id'], available=available, expired_at=expired_dt, ct_id=data['ct_id'])
+        if available is not None:
+            available = True if available == 'true' else False
+        coupon_t = coupon_repo.modify_member_coupon(member, coupon_id=None, available=available, expired_at=expired_dt, ct_id=data['ct_id'])
         result = self.__member_coupon_to_dict(coupon_t)
         return JsonResponse(result)

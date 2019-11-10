@@ -18,13 +18,58 @@ function get_member_info( callback, phone ){
 
 /*
 取得用戶消費紀錄
-resp : 
+resp : [{"order_id": 11, "discount": 0, "total_price": 1020, "coupon": "", "created_at": "2019/10/24 14:59", "products": [{"product": "\u6df1\u5c64\u808c\u8089\u653e\u9b06", "quantity": 1}]},...]
 */
 function get_member_record( callback, phone ){
 	$.ajax({
 		type: 'GET',
 		url: '/member/trans/record/',
 		data: {'phone':phone},
+		success: function(resp, textStatus, jqXHR){
+			callback(resp);
+		}
+	});
+}
+
+/*
+取得用戶優惠券列表
+resp : [{"id": 2, "name": "\u597d\u53cb\u4ecb\u7d39\u79ae", "expired_at": "", "available": false}, ...]
+*/
+function get_member_record( callback, phone ){
+	$.ajax({
+		type: 'GET',
+		url: '/member/coupon/member_coupons/',
+		data: {'phone':phone},
+		success: function(resp, textStatus, jqXHR){
+			callback(resp);
+		}
+	});
+}
+
+/*
+新增用戶優惠券
+resp : {"id": 4, "name": "好友介紹禮", "desc": "介紹新朋友", "expired_at": "2019/10/31 00:00:00", "used_at": "", "available": true}
+*/
+function get_member_record( callback, phone, coupon_id, expired_dt=undefined ){
+	$.ajax({
+		type: 'POST',
+		url: '/member/coupon/member_gain/',
+		data: {'phone':phone, 'coupon_id':coupon_id, 'expired_dt':expired_dt},
+		success: function(resp, textStatus, jqXHR){
+			callback(resp);
+		}
+	});
+}
+
+/*
+修改用戶優惠券
+resp : {"id": 4, "name": "好友介紹禮", "desc": "介紹新朋友", "expired_at": "2019/10/31 00:00:00", "used_at": "", "available": true}
+*/
+function get_member_record( callback, phone, ct_id, available=undefined, expired_dt=undefined ){
+	$.ajax({
+		type: 'POST',
+		url: '/member/coupon/member_update/',
+		data: {'phone':phone, 'ct_id':ct_id, 'available':available, 'expired_dt':expired_dt},
 		success: function(resp, textStatus, jqXHR){
 			callback(resp);
 		}

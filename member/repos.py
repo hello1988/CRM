@@ -174,7 +174,7 @@ class CouponRepo(object):
         coupons = Coupon.objects.all()
         return coupons
 
-    def modify_member_coupon(self, member, coupon_id, available=None, expired_at=None, ct_id=None):
+    def modify_member_coupon(self, member, coupon_id=None, available=None, expired_at=None, ct_id=None):
         coupon_t = CouponTable()
         if ct_id:
             coupon_t = CouponTable.objects.filter(id=ct_id).first()
@@ -182,7 +182,9 @@ class CouponRepo(object):
                 return
 
         coupon_t.member = member
-        coupon_t.coupon_id = coupon_id
+        if coupon_id:
+            coupon_t.coupon_id = coupon_id
+
         if expired_at:
             coupon_t.expired_at = expired_at
 
@@ -191,7 +193,6 @@ class CouponRepo(object):
 
         coupon_t.save()
         return coupon_t
-
 
     def get_coupon_by_member(self, member, available=None):
         coupons = CouponTable.objects.filter(member=member)
