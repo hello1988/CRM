@@ -108,6 +108,11 @@ function get_member_record( callback, record_id, title, detail, homework, head=f
 			'neck':neck,
 			'shoulder':shoulder,
 			'chest':chest,
+			'waist':waist,
+			'belly':belly,
+			'pelvis':pelvis,
+			'legs':legs,
+			'knees':knees
 			},
 		success: function(resp, textStatus, jqXHR){
 			callback(resp);
